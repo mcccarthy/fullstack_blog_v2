@@ -72,9 +72,13 @@ const loginCtrl = async (req, res, next) => {
 //user details
 const userDetailsCtrl = async (req, res) => {
 	try {
+		//get userID from params
+		const userId = req.params.id;
+		//find user
+		const user = await User.findById(userId);
 		res.json({
 			status: 'success',
-			user: 'User Details',
+			data: user,
 		});
 	} catch (error) {
 		res.json(error);
@@ -134,14 +138,33 @@ const updatePasswordCtrl = async (req, res) => {
 };
 
 //update user
-const updateUserCtrl = async (req, res) => {
+const updateUserCtrl = async (req, res, next) => {
+	const {fullname, email} = req.body;
 	try {
+		//check if email is not taken
+		if (email) {
+			const emailTaken = await User.findOne({email});
+			if (emailTaken) {
+				return next(appErr('Email is taken', 400));
+			}
+		}
+		//update the user if email is not taken
+		const user = await User.findByIdAndUpdate(
+			req.params.id,
+			{
+				fullname,
+				email,
+			},
+			{
+				new: true,
+			}
+		);
 		res.json({
 			status: 'success',
-			user: 'User update',
+			data: user,
 		});
 	} catch (error) {
-		res.json(error);
+		return res.json(next(appErr(error.message)));
 	}
 };
 
