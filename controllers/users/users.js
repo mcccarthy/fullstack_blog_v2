@@ -1,5 +1,6 @@
 /** @format */
 
+const bcrypt = require('bcryptjs');
 const User = require('../../models/users/Users');
 
 //register
@@ -13,12 +14,13 @@ const registerCtrl = async (req, res) => {
 			return res.json({status: 'failed', data: 'User already Exist'});
 		}
 		//Hash password
-
+		const salt = await bcrypt.genSalt(10);
+		const passwordHashed = await bcrypt.hash(password, salt);
 		//register user
 		const user = await User.create({
 			fullname,
 			email,
-			password,
+			password: passwordHashed,
 		});
 		res.json({
 			status: 'success',
@@ -31,10 +33,33 @@ const registerCtrl = async (req, res) => {
 
 //login
 const loginCtrl = async (req, res) => {
+	const {email, password} = req.body;
 	try {
+		//check if email exist
+		const userFound = await User.findOne({email});
+		if (!userFound) {
+			return res.json({
+				status: 'failed',
+				data: 'Invalid login credentials',
+			});
+		}
+		//verify password
+		const isPasswordValid = await bcrypt.compare(
+			password,
+			userFound.password
+		);
+		if (!isPasswordValid) {
+			//throw an error
+			if (userFound) {
+				return res.json({
+					status: 'failed',
+					data: 'Invalid  login credentials',
+				});
+			}
+		}
 		res.json({
 			status: 'success',
-			user: 'User login',
+			data: userFound,
 		});
 	} catch (error) {
 		res.json(error);
