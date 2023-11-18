@@ -89,9 +89,9 @@ const userDetailsCtrl = async (req, res) => {
 const userProfileCtrl = async (req, res) => {
 	try {
 		//get login user
-		const userID = req.session.userAuth;
+		const userId = req.session.userAuth;
 		//find the user
-		const user = await User.findById(userID);
+		const user = await User.findById(userId);
 		res.json({
 			status: 'success',
 			data: user,
@@ -126,14 +126,35 @@ const uploadCoverImgCtrl = async (req, res) => {
 };
 
 //update password
-const updatePasswordCtrl = async (req, res) => {
+const updatePasswordCtrl = async (req, res, next) => {
+	const {password} = req.body;
 	try {
-		res.json({
-			status: 'success',
-			user: 'User password update',
-		});
+		//check if user is updating password
+		if (password) {
+			const salt = await bcrypt.genSalt(10);
+			const passwordHashed = await bcrypt.hash(password, salt);
+			console.log('Password Hashed:', passwordHashed);
+			await User.findByIdAndUpdate(
+				req.params.id,
+
+				{
+					password: passwordHashed,
+				},
+				{
+					new: true,
+				}
+			);
+			console.log('User ID:', req.params.id);
+			console.log('New Password:', password);
+			console.log('Hashed Password:', passwordHashed);
+
+			res.json({
+				status: 'success',
+				user: 'Password has been changed successfully',
+			});
+		}
 	} catch (error) {
-		res.json(error);
+		return next(appErr('Please provide password field'));
 	}
 };
 
