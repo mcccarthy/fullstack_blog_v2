@@ -2,16 +2,21 @@
 
 const bcrypt = require('bcryptjs');
 const User = require('../../models/users/Users');
+const appErr = require('../../utils/appErr');
 
 //register
-const registerCtrl = async (req, res) => {
+const registerCtrl = async (req, res, next) => {
 	const {fullname, email, password} = req.body;
+	//check if field is empty
+	if (!fullname || !email || !password) {
+		return next(appErr('All fields are required'));
+	}
 	try {
 		//1. check if user exist (email)
 		const userFound = await User.findOne({email});
 		//throw and error
 		if (userFound) {
-			return res.json({status: 'failed', data: 'User already Exist'});
+			return next(appErr('User already Exist'));
 		}
 		//Hash password
 		const salt = await bcrypt.genSalt(10);
@@ -32,16 +37,16 @@ const registerCtrl = async (req, res) => {
 };
 
 //login
-const loginCtrl = async (req, res) => {
+const loginCtrl = async (req, res, next) => {
 	const {email, password} = req.body;
+	if (!email || !password) {
+		return next(appErr('Email and password fields are required'));
+	}
 	try {
 		//check if email exist
 		const userFound = await User.findOne({email});
 		if (!userFound) {
-			return res.json({
-				status: 'failed',
-				data: 'Invalid login credentials',
-			});
+			return next(appErr('Invalid login credentials'));
 		}
 		//verify password
 		const isPasswordValid = await bcrypt.compare(
@@ -50,12 +55,7 @@ const loginCtrl = async (req, res) => {
 		);
 		if (!isPasswordValid) {
 			//throw an error
-			if (userFound) {
-				return res.json({
-					status: 'failed',
-					data: 'Invalid  login credentials',
-				});
-			}
+			return next(appErr('Invalid login credentials'));
 		}
 		res.json({
 			status: 'success',

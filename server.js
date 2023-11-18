@@ -5,6 +5,7 @@ const express = require('express');
 const userRoutes = require('./routes/users/users');
 const postRoutes = require('./routes/posts/posts');
 const commentRoutes = require('./routes/comments/comments');
+const globalErrHandler = require('./middlewares/globalHandler');
 
 require('./config/dbConnect');
 
@@ -26,6 +27,7 @@ app.use('/api/v1/comments', commentRoutes);
 
 //Error handler middlewares
 //------------
+app.use(globalErrHandler);
 //listen server
 //------------
 const PORT = process.env.PORT || 9000;
