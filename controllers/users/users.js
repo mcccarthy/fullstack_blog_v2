@@ -57,6 +57,9 @@ const loginCtrl = async (req, res, next) => {
 			//throw an error
 			return next(appErr('Invalid login credentials'));
 		}
+		//save user into session
+		req.session.userAuth = userFound._id;
+		console.log(req.session);
 		res.json({
 			status: 'success',
 			data: userFound,
