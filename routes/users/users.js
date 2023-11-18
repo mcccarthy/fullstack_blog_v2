@@ -12,6 +12,7 @@ const {
 	updateUserCtrl,
 	logoutCtrl,
 } = require('../../controllers/users/users');
+const protected = require('../../middlewares/protected');
 const userRoutes = express.Router();
 
 //Post/api/v1/users/register
@@ -24,7 +25,7 @@ userRoutes.post('/login', loginCtrl);
 userRoutes.get('/:id', userDetailsCtrl);
 
 //GET/api/v1/users/profile/:id
-userRoutes.get('/profile/:id', userProfileCtrl);
+userRoutes.get('/profile/:id', protected, userProfileCtrl);
 
 //PUT/api/v1/users/profile-photo-upload/:id
 userRoutes.put('/profile-photo-upload/:id', uploadProfilePhotoCtrl);
