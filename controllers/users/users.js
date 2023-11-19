@@ -102,15 +102,40 @@ const userProfileCtrl = async (req, res) => {
 };
 
 //upload profile photo
-const uploadProfilePhotoCtrl = async (req, res) => {
-	try {
-		res.json({
-			status: 'success',
-			user: 'User profile image upload',
-		});
-	} catch (error) {
-		res.json(error);
-	}
+//upload profile photo
+const uploadProfilePhotoCtrl = async (req, res, next) => {
+  console.log(req.file.path);
+  try {
+    //1. find the user to be updated
+    const userId = req.session.userAuth;
+    const userFound = await User.findById(userId);
+
+    //2. check if user is found
+    if (!userFound) {
+      return next(appErr('User not found', 403));
+    }
+
+    //3. update profile photo
+    await User.findByIdAndUpdate(
+      userId,
+      {
+        profilePhoto: req.file.path, // Update to match your user model field name
+      },
+      {
+        new: true,
+      }
+    );
+
+    // Send back the updated user
+    const updatedUser = await User.findById(userId);
+    res.json({
+      status: 'success',
+      data: 'You have successfully updated your profile photo',
+      data: updatedUser, // Include the updated user in the response
+    });
+  } catch (error) {
+    next(appErr(error.message));
+  }
 };
 
 //upload cover photo
