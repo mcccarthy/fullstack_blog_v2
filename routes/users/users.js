@@ -37,10 +37,11 @@ userRoutes.put(
 	uploadProfilePhotoCtrl
 );
 
-// PUT /api/v1/users/cover-photo-upload/:id
+// PUT /api/v1/users/cover-photo-upload/
 userRoutes.put(
-	'/cover-photo-upload/:id',
-	upload.single('coverPhoto'), // Fix the use of userRoutes instead of router here
+	'/cover-photo-upload/',
+	protected,
+	upload.single('profile'),
 	uploadCoverImgCtrl
 );
 
