@@ -40,7 +40,7 @@ const createPostCtrl = async (req, res, next) => {
 //all posts
 const fetchPostsCtrl = async (req, res, next) => {
 	try {
-		const posts = await Post.find();
+		const posts = await Post.find().populate('comments');
 		res.json({
 			status: 'success',
 			data: posts,
@@ -56,7 +56,7 @@ const fetchPostCtrl = async (req, res, next) => {
 		//get the id from params
 		const id = req.params.id;
 		//find the post
-		const post = await Post.findById(id);
+		const post = await Post.findById(id).populate('comments');
 		res.json({
 			status: 'success',
 			data: post,
@@ -88,7 +88,6 @@ const deletePostCtrl = async (req, res, next) => {
 		next(appErr(error.message));
 	}
 };
-
 
 //update
 const updatePostCtrl = async (req, res, next) => {
