@@ -10,9 +10,10 @@ const {
 } = require('../../controllers/posts/posts');
 
 const postRoutes = express.Router();
+const protected = require('../../middlewares/protected');
 
 // POST /api/v1/posts
-postRoutes.post('/', createPostCtrl);
+postRoutes.post('/', protected, createPostCtrl);
 
 // GET all posts: /api/v1/posts
 postRoutes.get('/', fetchPostsCtrl);

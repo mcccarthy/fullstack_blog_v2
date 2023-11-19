@@ -1,11 +1,31 @@
 /** @format */
 
-//post created
+const Post = require('../../models/posts/Posts');
+const User = require('../../models/users/Users');
+
+/** @format */
+
+//post create
 const createPostCtrl = async (req, res) => {
+	const {title, description, category, user} = req.body;
 	try {
+		//find the user
+		const userId = req.session.userAuth;
+		const userFound = await User.findById(userId);
+		//create the post
+		const postCreated = await Post.create({
+			title,
+			description,
+			category,
+			user: userFound._id,
+		});
+		//push post created into array of user's post
+		userFound.posts.push(postCreated._id);
+		//resave user
+		await userFound.save();
 		res.json({
 			status: 'success',
-			user: 'Post created',
+			data: postCreated,
 		});
 	} catch (error) {
 		res.json(error);
