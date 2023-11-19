@@ -2,13 +2,17 @@
 
 const Post = require('../../models/posts/Posts');
 const User = require('../../models/users/Users');
+const appErr = require('../../utils/appErr');
 
 /** @format */
 
-//post create
-const createPostCtrl = async (req, res) => {
+// create
+const createPostCtrl = async (req, res, next) => {
 	const {title, description, category, user} = req.body;
 	try {
+		if (!title || !description || !category || !req.file) {
+			return next(appErr('All fields are required'));
+		}
 		//find the user
 		const userId = req.session.userAuth;
 		const userFound = await User.findById(userId);
@@ -18,6 +22,7 @@ const createPostCtrl = async (req, res) => {
 			description,
 			category,
 			user: userFound._id,
+			image: req.file.path,
 		});
 		//push post created into array of user's post
 		userFound.posts.push(postCreated._id);
@@ -28,43 +33,59 @@ const createPostCtrl = async (req, res) => {
 			data: postCreated,
 		});
 	} catch (error) {
-		res.json(error);
+		next(appErr(error.message));
 	}
 };
 
 //all posts
-const fetchPostsCtrl = async (req, res) => {
+const fetchPostsCtrl = async (req, res, next) => {
 	try {
+		const posts = await Post.find();
 		res.json({
 			status: 'success',
-			user: 'Post list',
+			data: posts,
 		});
 	} catch (error) {
-		res.json(error);
+		next(appErr(error.message));
 	}
 };
 
 //details
-const fetchPostCtrl = async (req, res) => {
+const fetchPostCtrl = async (req, res, next) => {
 	try {
+		//get the id from params
+		const id = req.params.id;
+		//find the post
+		const post = await Post.findById(id);
 		res.json({
 			status: 'success',
-			user: 'Post details',
+			data: post,
 		});
 	} catch (error) {
-		res.json(error);
+		next(appErr(error.message));
 	}
 };
 
 //delete
-const deletePostCtrl = async (req, res) => {
+const deletePostCtrl = async (req, res, next) => {
 	try {
+		//find the post
+		const post = await Post.findById(req.params.id);
+		//check if the post belongs to the user
+		if (post.user.toString() !== req.session.userAuth.toString()) {
+			return next(
+				appErr('You are not authorized to delete this post!', 403)
+			);
+		}
+
+		//delete post
+		await Post.findByIdAndDelete(req.params.id);
 		res.json({
 			status: 'success',
-			user: 'Post deleted',
+			data: 'Post deleted successfully',
 		});
 	} catch (error) {
-		res.json(error);
+		next(appErr(error.message));
 	}
 };
 
