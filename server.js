@@ -8,12 +8,17 @@ const userRoutes = require('./routes/users/users');
 const postRoutes = require('./routes/posts/posts');
 const commentRoutes = require('./routes/comments/comments');
 const globalErrHandler = require('./middlewares/globalHandler');
+const {rawListeners} = require('./models/comments/Comment');
 
 require('./config/dbConnect');
 
 const app = express();
 
 //middlewares
+//configure ejs
+app.set('view engine', 'ejs');
+//server static files
+app.use(express.static(__dirname, +'/public'));
 //------------
 app.use(express.json()); //pass incoming data
 
@@ -29,6 +34,10 @@ app.use(
 		}),
 	})
 );
+//render home
+app.get('/', (req, res) => {
+	res.render('index.ejs');
+});
 //users route
 //------------
 app.use('/api/v1/users', userRoutes);
